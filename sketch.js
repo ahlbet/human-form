@@ -8,6 +8,7 @@ const horizontalLines = []
 const HORIZONTAL_LINE = "Horizontal Line"
 const VERTICAL_LINE = "Vertical Line"
 const HEAD = "Head"
+const maxAliveShapes = 5
 let globalDrawingShape = HEAD
 let globalDrawingShapeLabel
 
@@ -23,6 +24,17 @@ function draw() {
   noFill()
   stroke(33, 3)
   drawShapes()
+}
+
+function calculateMaxAliveShapes() {
+  let allShapes = heads.concat(verticalLines).concat(horizontalLines)
+  let aliveShapesCount = 0
+  for (let i = 0; i < allShapes.length; i++) {
+    if (!allShapes[i].isDone) {
+      aliveShapesCount++
+    }
+  }
+  return aliveShapesCount
 }
 
 function drawShapes() {
@@ -80,6 +92,7 @@ function updateTimeAlive() {
 }
 
 function mousePressed() {
+  if (calculateMaxAliveShapes() > maxAliveShapes) return
   if (mouseX >= 0 && mouseX <= canvasWidth && mouseY >= 0 && mouseY <= height) {
     const defaultObj = {
       cx: mouseX,
