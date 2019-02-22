@@ -1,5 +1,7 @@
 let cx, cy, timeAliveSlider, timeAliveSliderLabel
+let sketchCanvas
 let chooseHeadButton, chooseHorizontalLineButton, chooseVerticalLineButton
+let saveButton, clearButton
 let globalTimeAlive = 500
 const canvasWidth = 750
 const heads = []
@@ -13,7 +15,7 @@ let globalDrawingShape = HEAD
 let globalDrawingShapeLabel
 
 function setup() {
-  createCanvas(canvasWidth, windowHeight)
+  sketchCanvas = createCanvas(canvasWidth, windowHeight)
   background(235)
   initializeDOM()
   cx = width / 2
@@ -24,6 +26,17 @@ function draw() {
   noFill()
   stroke(33, 3)
   drawShapes()
+}
+
+function clearSketch() {
+  sketchCanvas.background(235)
+  heads.length = 0
+  verticalLines.length = 0
+  horizontalLines.length = 0
+}
+
+function saveSketch() {
+  save()
 }
 
 function calculateMaxAliveShapes() {
@@ -224,4 +237,13 @@ function initializeDOM() {
   chooseVerticalLineButton = createButton(VERTICAL_LINE)
   chooseVerticalLineButton.position(canvasWidth + 100 + chooseHeadButton.width + chooseHorizontalLineButton.width, 100)
   chooseVerticalLineButton.mousePressed(() => chooseDrawingShape(VERTICAL_LINE))
+
+  saveButton = createButton("Save")
+  saveButton.position(canvasWidth + 50, (windowHeight / 2) + 50)
+  saveButton.mousePressed(saveSketch)
+
+  clearButton = createButton("Clear")
+  clearButton.position(canvasWidth + 75 + saveButton.width, (windowHeight / 2) + 50)
+  clearButton.mousePressed(clearSketch)
+
 }
