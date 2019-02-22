@@ -1,28 +1,20 @@
 let cx, cy, timeAliveSlider, timeAliveSliderLabel
-let chooseHeadButton
-let globalDrawingShape
-let globalTimeAlive
+let chooseHeadButton, chooseHorizontalLineButton, chooseVerticalLineButton
+let globalTimeAlive = 500
 const canvasWidth = 750
-const centers = []
-const bodies = []
+const heads = []
+const verticalLines = []
+const horizontalLines = []
 const HORIZONTAL_LINE = "Horizontal Line"
 const VERTICAL_LINE = "Vertical Line"
 const HEAD = "Head"
+let globalDrawingShape = HEAD
+let globalDrawingShapeLabel
 
 function setup() {
   createCanvas(canvasWidth, windowHeight)
   background(235)
-
-  timeAliveSlider = createSlider(100, 1000, 500)
-  timeAliveSlider.position(canvasWidth + 50, windowHeight / 2)
-  timeAliveSlider.touchMoved(updateTimeAlive)
-  timeAliveSliderLabel = createP(`Time Alive: ${timeAliveSlider.value()}ms`)
-  timeAliveSliderLabel.position(timeAliveSlider.x + timeAliveSlider.width + 20, (windowHeight / 2) - timeAliveSlider.height)
-
-  chooseHeadButton = createButton(HEAD)
-  chooseHeadButton.position(canvasWidth + 50, (windowHeight / 2) - 50)
-  chooseHeadButton.mousePressed(() => chooseDrawingShape(HEAD))
-
+  initializeDOM()
   cx = width / 2
   cy = 300
 }
@@ -30,23 +22,37 @@ function setup() {
 function draw() {
   noFill()
   stroke(33, 3)
-  centers.forEach(c => {
-    if (c.timeAlive < c.maxTimeAlive && !c.isDone) {
-      drawHuman(c.cx, c.cy, c.scale, c.timeAlive)
-      increaseScale(c, c.scale)
-      increaseTimeAlive(c, c.timeAlive)
+  drawShapes()
+}
+
+function drawShapes() {
+  heads.forEach(h => {
+    if (h.timeAlive < h.maxTimeAlive && !h.isDone) {
+      drawHead(h.cx, h.cy, 80, 175, 0.05, h.scale)
+      increaseScale(h, h.scale)
+      increaseTimeAlive(h, h.timeAlive)
     } else {
-      c.isDone = true
+      h.isDone = true
     }
   })
 
-  bodies.forEach(b => {
-    if (b.timeAlive < b.maxTimeAlive && !b.isDone) {
-      drawBody(b.cx, b.cy, 100, b.scale)
-      increaseScale(b, b.scale)
-      increaseTimeAlive(b, b.timeAlive)
+  verticalLines.forEach(vl => {
+    if (vl.timeAlive < vl.maxTimeAlive && !vl.isDone) {
+      drawVerticalLine(vl.cx, vl.cy, 100, vl.scale)
+      increaseScale(vl, vl.scale)
+      increaseTimeAlive(vl, vl.timeAlive)
     } else {
-      b.isDone = true
+      vl.isDone = true
+    }
+  })
+
+  horizontalLines.forEach(hl => {
+    if (hl.timeAlive < hl.maxTimeAlive && !hl.isDone) {
+      drawHorizontalLine(hl.cx, hl.cy, 100, hl.scale)
+      increaseScale(hl, hl.scale)
+      increaseTimeAlive(hl, hl.timeAlive)
+    } else {
+      hl.isDone = true
     }
   })
 }
@@ -55,12 +61,15 @@ function chooseDrawingShape(shape) {
   switch (shape) {
     case HEAD:
       globalDrawingShape = HEAD
+      globalDrawingShapeLabel.html(`Chosen Shape: ${globalDrawingShape}`)
       break
     case HORIZONTAL_LINE:
       globalDrawingShape = HORIZONTAL_LINE
+      globalDrawingShapeLabel.html(`Chosen Shape: ${globalDrawingShape}`)
       break
     case VERTICAL_LINE:
       globalDrawingShape = VERTICAL_LINE
+      globalDrawingShapeLabel.html(`Chosen Shape: ${globalDrawingShape}`)
       break
   }
 }
@@ -70,7 +79,7 @@ function updateTimeAlive() {
   timeAliveSliderLabel.html(`Time Alive: ${globalTimeAlive}ms`)
 }
 
-function mousePressed(event) {
+function mousePressed() {
   if (mouseX >= 0 && mouseX <= canvasWidth && mouseY >= 0 && mouseY <= height) {
     const defaultObj = {
       cx: mouseX,
@@ -80,22 +89,33 @@ function mousePressed(event) {
       isDone: false,
       maxTimeAlive: globalTimeAlive,
     }
-    if (event.shiftKey) {
-      bodies.push(defaultObj)
-    } else {
-      centers.push(defaultObj)
+
+    switch (globalDrawingShape) {
+      case HEAD:
+        heads.push(defaultObj)
+        break
+      case VERTICAL_LINE:
+        verticalLines.push(defaultObj)
+        break
+      case HORIZONTAL_LINE:
+        horizontalLines.push(defaultObj)
+        break
     }
   }
 }
 
-function drawHuman(cx, cy, scale) {
-  drawHead(cx, cy, 80, 175, 0.05, scale)
-  // drawBody(cx - 20, cy, 300)
-  // drawBody(cx + 20, cy, 300)
-  // drawBody(cx, cy, 300)
+function drawHorizontalLine(cx, cy, r, scale) {
+  beginShape()
+  const slow = 1.5
+  for (let i = 0; i < r; i += 10) {
+    let x = cx + generateNoiseShift(i / slow, scale / slow, null) + i
+    let y = cy + generateNoiseShift(i / slow, scale / slow, x / slow)
+    vertex(x, y)
+  }
+  endShape()
 }
 
-function drawBody(cx, cy, r, scale) {
+function drawVerticalLine(cx, cy, r, scale) {
   beginShape()
   const slow = 1.5
   for (let i = 0; i < r; i += 10) {
@@ -170,4 +190,25 @@ function increaseScale(c, scale) {
 
 function generateNoiseShift(a, scale, o) {
   return o ? map(noise(o / 10, a, a * ((frameCount / 100) + 1)), 0, 1, -scale, scale) : map(noise(PI, a, a * ((frameCount / 100) + 1)), 0, 1, -scale, scale)
+}
+
+function initializeDOM() {
+  timeAliveSlider = createSlider(100, 1000, 500)
+  timeAliveSlider.position(canvasWidth + 50, windowHeight / 2)
+  timeAliveSlider.touchMoved(updateTimeAlive)
+  timeAliveSliderLabel = createP(`Time Alive: ${globalTimeAlive}ms`)
+  timeAliveSliderLabel.position(timeAliveSlider.x + timeAliveSlider.width + 20, (windowHeight / 2) - timeAliveSlider.height)
+
+  globalDrawingShapeLabel = createP(`Chosen Shape: ${globalDrawingShape}`)
+  globalDrawingShapeLabel.position(canvasWidth + 50, 50)
+
+  chooseHeadButton = createButton(HEAD)
+  chooseHeadButton.position(canvasWidth + 50, 100)
+  chooseHeadButton.mousePressed(() => chooseDrawingShape(HEAD))
+  chooseHorizontalLineButton = createButton(HORIZONTAL_LINE)
+  chooseHorizontalLineButton.position(canvasWidth + 75 + chooseHeadButton.width, 100)
+  chooseHorizontalLineButton.mousePressed(() => chooseDrawingShape(HORIZONTAL_LINE))
+  chooseVerticalLineButton = createButton(VERTICAL_LINE)
+  chooseVerticalLineButton.position(canvasWidth + 100 + chooseHeadButton.width + chooseHorizontalLineButton.width, 100)
+  chooseVerticalLineButton.mousePressed(() => chooseDrawingShape(VERTICAL_LINE))
 }
