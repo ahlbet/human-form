@@ -1,5 +1,7 @@
-let cx, cy, timeAliveSlider, timeAliveSliderLabel
-let sketchCanvas
+let cx, cy
+let timeAliveSlider, timeAliveSliderLabel
+let sketchCanvas, strokeColorPicker, strokeColorPickerLabel
+let globalStrokeColor
 let chooseHeadButton, chooseHorizontalLineButton, chooseVerticalLineButton
 let saveButton, clearButton
 let globalTimeAlive = 500
@@ -24,8 +26,9 @@ function setup() {
 
 function draw() {
   noFill()
-  stroke(33, 3)
+  stroke(globalStrokeColor)
   drawShapes()
+  // updateTimeAlive()
 }
 
 function clearSketch() {
@@ -33,6 +36,11 @@ function clearSketch() {
   heads.length = 0
   verticalLines.length = 0
   horizontalLines.length = 0
+}
+
+function setStrokeColor() {
+  globalStrokeColor = strokeColorPicker.color()
+  globalStrokeColor.setAlpha(3)
 }
 
 function saveSketch() {
@@ -221,7 +229,7 @@ function generateNoiseShift(a, scale, o) {
 function initializeDOM() {
   timeAliveSlider = createSlider(100, 1000, 500)
   timeAliveSlider.position(canvasWidth + 50, windowHeight / 2)
-  timeAliveSlider.touchMoved(updateTimeAlive)
+  timeAliveSlider.changed(updateTimeAlive)
   timeAliveSliderLabel = createP(`Time Alive: ${globalTimeAlive}ms`)
   timeAliveSliderLabel.position(timeAliveSlider.x + timeAliveSlider.width + 20, (windowHeight / 2) - timeAliveSlider.height)
 
@@ -245,5 +253,13 @@ function initializeDOM() {
   clearButton = createButton("Clear")
   clearButton.position(canvasWidth + 75 + saveButton.width, (windowHeight / 2) + 50)
   clearButton.mousePressed(clearSketch)
+
+  strokeColorPicker = createColorPicker("#010101")
+  strokeColorPicker.position(canvasWidth + 50, 200)
+  strokeColorPicker.input(setStrokeColor)
+  strokeColorPickerLabel = createP("Stroke Color")
+  strokeColorPickerLabel.position(canvasWidth + 75 + strokeColorPicker.width, 200 - (strokeColorPicker.height / 2))
+  globalStrokeColor = color(strokeColorPicker.value())
+  globalStrokeColor.setAlpha(3)
 
 }
